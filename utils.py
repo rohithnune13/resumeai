@@ -12,10 +12,8 @@ def parse_feedback_sections(feedback_text: str) -> dict:
         "score":        "## 🎯 Overall Score",
         "beforeafter":  "## 🔄 Before & After"
     }
-
     result = {}
     headers = list(sections.values())
-
     for key, header in sections.items():
         start = feedback_text.find(header)
         if start == -1:
@@ -30,17 +28,14 @@ def parse_feedback_sections(feedback_text: str) -> dict:
             if next_start != -1 and next_start < end:
                 end = next_start
         result[key] = feedback_text[start:end].strip()
-
     return result
 
 
 def parse_before_after(beforeafter_text: str):
     if not beforeafter_text:
         return "", ""
-
     before = ""
     after = ""
-
     before_match = re.search(
         r'BEFORE:\s*\n(.*?)(?=AFTER:|$)',
         beforeafter_text,
@@ -48,7 +43,6 @@ def parse_before_after(beforeafter_text: str):
     )
     if before_match:
         before = before_match.group(1).strip().strip("[]").strip()
-
     after_match = re.search(
         r'AFTER:\s*\n(.*?)$',
         beforeafter_text,
@@ -56,7 +50,6 @@ def parse_before_after(beforeafter_text: str):
     )
     if after_match:
         after = after_match.group(1).strip().strip("[]").strip()
-
     return before, after
 
 
@@ -105,41 +98,24 @@ def extract_keywords_list(keywords_text: str) -> list:
     keywords = []
     for line in keywords_text.split("\n"):
         line = line.strip()
-        line = re.sub(r'^[-•*]\s*', '', line)
+        line = re.sub(r'^[-*]\s*', '', line)
         if line:
             keywords.append(line)
     return keywords
 
 
-# ── Smart Resume Scorer ──────────────────────────────────────────────
-
 def calculate_resume_score(resume_text: str) -> dict:
-    """
-    Calculates a genuine resume score using measurable signals.
-    Returns a dict with total score, breakdown, and signal details.
-
-    Scoring breakdown (total = 10.0):
-    - Quantified achievements : 2.0 pts
-    - Action verbs            : 1.5 pts
-    - Resume sections present : 1.5 pts
-    - Appropriate length      : 1.0 pts
-    - Keyword density         : 2.0 pts
-    - Summary quality         : 1.0 pts
-    - Contact information     : 1.0 pts
-    """
-
     text_lower = resume_text.lower()
     words = resume_text.split()
     word_count = len(words)
     breakdown = {}
 
-    # ── 1. Quantified Achievements (2.0 pts) ────────────────────────
-    # Look for numbers, percentages, dollar amounts, time periods
+    # 1. Quantified Achievements (2.0 pts)
     number_patterns = [
-        r'\d+%',                    # percentages: 30%
-        r'\$[\d,]+',               # money: $50,000
-        r'\d+\+',                  # 10+ years
-        r'\b\d{2,}\b',             # any 2+ digit number
+        r'\d+%',
+        r'\$[\d,]+',
+        r'\d+\+',
+        r'\b\d{2,}\b',
         r'increased|decreased|reduced|improved|grew|saved|generated',
     ]
     metric_count = 0
@@ -160,12 +136,10 @@ def calculate_resume_score(resume_text: str) -> dict:
         quant_detail = "No quantified achievements found"
 
     breakdown["Quantified achievements"] = {
-        "score": quant_score,
-        "max": 2.0,
-        "detail": quant_detail
+        "score": quant_score, "max": 2.0, "detail": quant_detail
     }
 
-    # ── 2. Action Verbs (1.5 pts) ────────────────────────────────────
+    # 2. Action Verbs (1.5 pts)
     action_verbs = [
         "developed", "built", "designed", "implemented", "created",
         "managed", "led", "optimized", "automated", "delivered",
@@ -189,12 +163,10 @@ def calculate_resume_score(resume_text: str) -> dict:
         verb_detail = "Very few action verbs found"
 
     breakdown["Action verbs"] = {
-        "score": verb_score,
-        "max": 1.5,
-        "detail": verb_detail
+        "score": verb_score, "max": 1.5, "detail": verb_detail
     }
 
-    # ── 3. Resume Sections (1.5 pts) ────────────────────────────────
+    # 3. Resume Sections (1.5 pts)
     expected_sections = [
         ["experience", "work experience", "employment"],
         ["education", "academic"],
@@ -214,8 +186,7 @@ def calculate_resume_score(resume_text: str) -> dict:
         "detail": str(sections_found) + " of 5 expected sections found"
     }
 
-    # ── 4. Length (1.0 pt) ──────────────────────────────────────────
-    # Ideal resume is 400-800 words
+    # 4. Length (1.0 pt)
     if 400 <= word_count <= 800:
         length_score = 1.0
         length_detail = "Ideal length (" + str(word_count) + " words)"
@@ -224,18 +195,16 @@ def calculate_resume_score(resume_text: str) -> dict:
         length_detail = "Acceptable length (" + str(word_count) + " words)"
     elif word_count > 1000:
         length_score = 0.3
-        length_detail = "Too long (" + str(word_count) + " words) — aim for 400-800"
+        length_detail = "Too long (" + str(word_count) + " words) - aim for 400-800"
     else:
         length_score = 0.2
-        length_detail = "Too short (" + str(word_count) + " words) — add more detail"
+        length_detail = "Too short (" + str(word_count) + " words) - add more detail"
 
     breakdown["Resume length"] = {
-        "score": length_score,
-        "max": 1.0,
-        "detail": length_detail
+        "score": length_score, "max": 1.0, "detail": length_detail
     }
 
-    # ── 5. Keyword Density (2.0 pts) ────────────────────────────────
+    # 5. Keyword Density (2.0 pts)
     tech_keywords = [
         "python", "java", "javascript", "sql", "aws", "azure", "docker",
         "kubernetes", "react", "node", "git", "api", "agile", "scrum",
@@ -259,18 +228,18 @@ def calculate_resume_score(resume_text: str) -> dict:
         kw_detail = "Poor keyword coverage (" + str(keyword_count) + " keywords)"
 
     breakdown["Keyword density"] = {
-        "score": kw_score,
-        "max": 2.0,
-        "detail": kw_detail
+        "score": kw_score, "max": 2.0, "detail": kw_detail
     }
 
-    # ── 6. Summary Quality (1.0 pt) ──────────────────────────────────
+    # 6. Summary Quality (1.0 pt)
     has_summary = any(
         s in text_lower for s in ["summary", "objective", "profile", "about"]
     )
-    summary_words = ["experienced", "motivated", "skilled", "passionate",
-                     "proven", "dedicated", "results", "years of experience"]
-    generic_count = sum(1 for w in summary_words if w in text_lower)
+    generic_words = [
+        "experienced", "motivated", "skilled", "passionate",
+        "proven", "dedicated", "results", "years of experience"
+    ]
+    generic_count = sum(1 for w in generic_words if w in text_lower)
 
     if has_summary and generic_count <= 2:
         summary_score = 1.0
@@ -280,23 +249,20 @@ def calculate_resume_score(resume_text: str) -> dict:
         summary_detail = "Summary present but somewhat generic"
     elif has_summary:
         summary_score = 0.3
-        summary_detail = "Summary too generic — make it specific"
+        summary_detail = "Summary too generic - make it specific"
     else:
         summary_score = 0.0
         summary_detail = "No summary section found"
 
     breakdown["Summary quality"] = {
-        "score": summary_score,
-        "max": 1.0,
-        "detail": summary_detail
+        "score": summary_score, "max": 1.0, "detail": summary_detail
     }
 
-    # ── 7. Contact Information (1.0 pt) ──────────────────────────────
+    # 7. Contact Information (1.0 pt)
     has_email = bool(re.search(r'[\w.-]+@[\w.-]+\.\w+', resume_text))
     has_phone = bool(re.search(r'[\+\(]?[\d\s\-\(\)]{7,15}', resume_text))
     has_linkedin = "linkedin" in text_lower
     has_github = "github" in text_lower
-
     contact_count = sum([has_email, has_phone, has_linkedin, has_github])
 
     if contact_count >= 3:
@@ -304,25 +270,21 @@ def calculate_resume_score(resume_text: str) -> dict:
         contact_detail = "Complete contact information"
     elif contact_count == 2:
         contact_score = 0.6
-        contact_detail = "Basic contact info — add LinkedIn or GitHub"
+        contact_detail = "Basic contact info - add LinkedIn or GitHub"
     else:
         contact_score = 0.2
         contact_detail = "Missing important contact information"
 
     breakdown["Contact information"] = {
-        "score": contact_score,
-        "max": 1.0,
-        "detail": contact_detail
+        "score": contact_score, "max": 1.0, "detail": contact_detail
     }
 
-    # ── Final Score ───────────────────────────────────────────────────
+    # Final Score
     total = round(
         quant_score + verb_score + section_score +
         length_score + kw_score + summary_score + contact_score,
         1
     )
-
-    # Clamp between 1.0 and 10.0
     total = max(1.0, min(10.0, total))
 
     return {

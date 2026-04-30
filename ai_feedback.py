@@ -53,7 +53,7 @@ def get_resume_feedback(resume_text: str) -> str:
 
     prompt = (
         "Analyze this resume and provide qualitative feedback only.\n"
-        "Do NOT include a score — the score is calculated separately.\n\n"
+        "Do NOT include a numeric score - the score is calculated separately.\n\n"
         "Respond EXACTLY using these section headers:\n\n"
         "## ✅ Strengths\n"
         "- List exactly 4 specific strengths referencing actual content\n\n"
@@ -64,13 +64,14 @@ def get_resume_feedback(resume_text: str) -> str:
         "## 💡 ATS Suggestions\n"
         "- List exactly 4 specific formatting fixes\n\n"
         "## 🎯 Overall Score\n"
-        "One honest sentence summarizing the resume quality.\n\n"
+        "One honest sentence summarizing the overall resume quality.\n\n"
         "## 🔄 Before & After\n"
-        "Find the weakest bullet point. Rewrite it with metrics and impact.\n\n"
+        "Find the weakest bullet point in work experience.\n"
+        "Rewrite it with strong action verbs, metrics, and clear impact.\n\n"
         "BEFORE:\n"
-        "[exact weak bullet point]\n\n"
+        "[exact weak bullet point from the resume]\n\n"
         "AFTER:\n"
-        "[rewritten with metrics]\n\n"
+        "[rewritten version with metrics and impact]\n\n"
         "Resume to analyze:\n\n"
         + resume_text
     )
@@ -85,7 +86,8 @@ def get_resume_feedback(resume_text: str) -> str:
                         "You are an expert resume reviewer. "
                         "Always respond with exact section headers. "
                         "Never skip sections. Be specific and reference "
-                        "actual content from the resume."
+                        "actual content from the resume. "
+                        "Do not include any numeric score in your response."
                     )
                 },
                 {
