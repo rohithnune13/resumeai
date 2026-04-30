@@ -274,8 +274,10 @@ if uploaded_file is not None:
                 st.error(feedback)
                 st.stop()
 
+    from utils import calculate_resume_score
             sections = parse_feedback_sections(feedback)
-            score_number = extract_score_number(sections.get("score", ""))
+            score_data = calculate_resume_score(resume_text)
+            score_number = score_data["score"]
             score_color = get_score_color(score_number)
             score_label = get_score_label(score_number)
             before_text, after_text = parse_before_after(
@@ -306,22 +308,17 @@ if uploaded_file is not None:
 
         # TAB 1: Overview
             with tab1:
-                score_line = ""
-                score_lines = sections.get("score", "").split("\n")
-                if len(score_lines) > 1:
-                    score_line = score_lines[1]
-                else:
-                    score_line = sections.get("score", "")[:120]
+                score_line = sections.get("score", "")[:200]
 
                 st.markdown(
                     "<div class='score-card'>"
                     "<div>"
                     "<div class='score-number' style='color:" + score_color + ";'>" +
-                    str(score_number if score_number else "-") +
+                    str(score_number) +
                     "</div>"
                     "<div class='score-outof'>out of 10</div>"
                     "</div>"
-                    "<div>"
+                    "<div style='flex:1;'>"
                     "<div class='score-label' style='color:" + score_color + ";'>" +
                     score_label +
                     "</div>"
@@ -334,19 +331,52 @@ if uploaded_file is not None:
                 if score_number:
                     st.progress(score_number / 10)
 
+                # Score breakdown table
+                st.markdown(
+                    "<div style='font-size:14px; font-weight:600; "
+                    "margin: 16px 0 10px;'>Score breakdown</div>",
+                    unsafe_allow_html=True
+                )
+
+                breakdown = score_data.get("breakdown", {})
+                for signal, data in breakdown.items():
+                    sig_score = data["score"]
+                    sig_max = data["max"]
+                    sig_detail = data["detail"]
+                    sig_pct = sig_score / sig_max
+
+                    if sig_pct >= 0.8:
+                        sig_color = "#16a34a"
+                    elif sig_pct >= 0.5:
+                        sig_color = "#d97706"
+                    else:
+                        sig_color = "#dc2626"
+
+                    st.markdown(
+                        "<div style='display:flex; justify-content:space-between;"
+                        "font-size:13px; margin-bottom:3px;'>"
+                        "<span style='color:#374151;'>" + signal + "</span>"
+                        "<span style='color:" + sig_color + "; font-weight:600;'>" +
+                        str(sig_score) + " / " + str(sig_max) +
+                        "</span></div>"
+                        "<div style='font-size:11px; color:#9ca3af;"
+                        "margin-bottom:8px;'>" + sig_detail + "</div>",
+                        unsafe_allow_html=True
+                    )
+                    st.progress(sig_pct)
+
+                # Top strength and priority cards
                 c1, c2 = st.columns(2)
 
                 strength_line = ""
-                strength_lines = sections.get("strengths", "").split("\n")
-                for line in strength_lines:
+                for line in sections.get("strengths", "").split("\n"):
                     cleaned = line.strip().lstrip("-• ")
                     if cleaned:
                         strength_line = cleaned
                         break
 
                 improve_line = ""
-                improve_lines = sections.get("improvements", "").split("\n")
-                for line in improve_lines:
+                for line in sections.get("improvements", "").split("\n"):
                     cleaned = line.strip().lstrip("-• ")
                     if cleaned:
                         improve_line = cleaned
@@ -368,7 +398,6 @@ if uploaded_file is not None:
                         "</div>",
                         unsafe_allow_html=True
                     )
-
             # TAB 2: Full Feedback
             with tab2:
                 st.markdown(
