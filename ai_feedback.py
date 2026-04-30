@@ -22,42 +22,55 @@ def get_resume_feedback(resume_text: str) -> str:
 
     client = Groq(api_key=api_key)
 
-    prompt = f"""
-You are an expert resume reviewer and career coach with 10+ years of experience
-in tech hiring. Analyze the resume below and provide clear, honest, structured feedback.
+prompt = f"""
+You are a brutally honest resume reviewer and senior tech recruiter.
+You have high standards and you do NOT give inflated scores.
 
-Format your response EXACTLY using these section headers — do not change them:
+SCORING RULES — follow these strictly:
+- 9.0 to 10.0 = Near perfect. Rare. Only for exceptional resumes with strong metrics, clean formatting, relevant keywords, and clear impact.
+- 7.0 to 8.9 = Good resume but has clear gaps. Most resumes fall here.
+- 5.0 to 6.9 = Average. Missing metrics, weak summary, or poor ATS optimization.
+- 3.0 to 4.9 = Below average. Major issues with structure, relevance, or clarity.
+- 1.0 to 2.9 = Poor. Needs complete rewrite.
+
+You MUST vary your score based on the actual quality of THIS specific resume.
+Do NOT default to 8.5. Evaluate honestly and critically.
+
+Analyze the resume below and respond EXACTLY using these section headers:
 
 ## ✅ Strengths
-- List exactly 4 specific strengths from this resume
-- Be specific, reference actual content from the resume
+- List exactly 4 specific strengths from THIS resume
+- Reference actual content, job titles, tools, or projects mentioned
 
 ## 🔧 Areas for Improvement
-- List exactly 4 concrete things to fix
-- Be direct and actionable
+- List exactly 4 concrete improvements needed
+- Be direct, critical, and specific to THIS resume
 
 ## 🔑 Missing Keywords
-- List exactly 6 important keywords missing from this resume
-- Focus on keywords ATS systems and recruiters look for
+- List exactly 6 keywords missing from THIS resume
+- Focus on ATS keywords relevant to the candidate's target role
 
 ## 💡 ATS Suggestions
-- List exactly 4 specific ATS formatting tips for this resume
+- List exactly 4 specific ATS formatting fixes for THIS resume
 
 ## 🎯 Overall Score
-Give a score in this exact format: X.X/10
-Then one sentence explaining the score.
+Score: X.X/10
+One honest sentence explaining exactly why this score was given.
 
 ## 🔄 Before & After
-Find the single weakest bullet point in the resume work experience.
-Then rewrite it to be stronger with metrics and impact.
+Find the single weakest bullet point in the work experience section.
+Rewrite it with strong action verbs, specific metrics, and clear impact.
 
 BEFORE:
-[paste the exact weak bullet point from the resume here]
+[copy the exact weak bullet point here]
 
 AFTER:
-[your improved version with specific metrics, action verbs, and impact]
+[rewritten version with metrics and impact]
 
 Here is the resume to analyze:
+
+{resume_text}
+"""
 
 {resume_text}
 """
